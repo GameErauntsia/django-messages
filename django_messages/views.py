@@ -1,3 +1,4 @@
+import json
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
@@ -222,3 +223,20 @@ def view(request, message_id, form_class=ComposeForm, quote_helper=format_quote,
         context['reply_form'] = form
     return render_to_response(template_name, context,
         context_instance=RequestContext(request))
+
+def get_ajax_user(request):
+    if request.is_ajax():
+        q = request.GET.get('term', '')
+        users = User.objects.filter(username__icontains = q )[:20]
+        results = []
+        for user in users:
+            user_json = {}
+            user_json['id'] = user.id
+            user_json['label'] = user.username
+            user_json['value'] = user.username
+            results.append(user_json)
+        data = json.dumps(results)
+    else:
+        data = 'fail'
+    mimetype = 'application/json'
+    return HttpResponse(data, mimetype)
